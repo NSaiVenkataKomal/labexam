@@ -1,0 +1,72 @@
+package com.klef.jfsd.exam;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.criterion.Restrictions;
+
+import java.util.List;
+
+public class ClientDemo {
+    public static void main(String[] args) {
+        // Initialize SessionFactory
+        SessionFactory sessionFactory = new Configuration().configure("hibernate.cfg.xml").buildSessionFactory();
+
+        // Insert Records
+        insertCustomer(sessionFactory);
+
+        // Perform Criteria Queries
+        performCriteriaQueries(sessionFactory);
+
+        sessionFactory.close();
+    }
+
+    private static void insertCustomer(SessionFactory sessionFactory) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+
+        Customer customer1 = new Customer();
+        customer1.setName("John Doe");
+        customer1.setEmail("john.doe@example.com");
+        customer1.setAge(30);
+        customer1.setLocation("New York");
+
+        Customer customer2 = new Customer();
+        customer2.setName("Jane Smith");
+        customer2.setEmail("jane.smith@example.com");
+        customer2.setAge(25);
+        customer2.setLocation("California");
+
+        session.save(customer1);
+        session.save(customer2);
+
+        transaction.commit();
+        session.close();
+        System.out.println("Records inserted successfully!");
+    }
+
+    private static void performCriteriaQueries(SessionFactory sessionFactory) {
+        Session session = sessionFactory.openSession();
+
+        System.out.println("\n--- Customers aged less than 30 ---");
+        List<Customer> customers = session.createCriteria(Customer.class)
+                .add(Restrictions.lt("age", 30))
+                .list();
+        customers.forEach(c -> System.out.println(c.getName() + " - " + c.getAge()));
+
+        System.out.println("\n--- Customers aged between 20 and 35 ---");
+        customers = session.createCriteria(Customer.class)
+                .add(Restrictions.between("age", 20, 35))
+                .list();
+        customers.forEach(c -> System.out.println(c.getName() + " - " + c.getAge()));
+
+        System.out.println("\n--- Customers located in 'New York' ---");
+        customers = session.createCriteria(Customer.class)
+                .add(Restrictions.eq("location", "New York"))
+                .list();
+        customers.forEach(c -> System.out.println(c.getName() + " - " + c.getLocation()));
+
+        session.close();
+    }
+}
